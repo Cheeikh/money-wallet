@@ -12,11 +12,12 @@ import { FinancialGoalsComponent } from '../shared/financial-goals/financial-goa
 import { map } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { ServiceConfig, TransferData, TransportData, BillsData, MobileRechargeData } from '../../models/service.model';
-import { QRCodeAction } from '../../models/qr-code.model';
+import { QRCodeAction, QRCodeData } from '../../models/qr-code.model';
 import { TransactionService } from '../../services/transaction.service';
 import { ToastService } from '../../services/toast.service';
 import { ToastComponent } from '../shared/toast/toast.component';
 import { PhoneInputComponent } from '../shared/phone-input/phone-input.component';
+import { QRScannerComponent } from '../shared/qr-scanner/qr-scanner.component';
 
 interface QuickService {
   id: string;
@@ -778,6 +779,24 @@ interface ActionModalData {
           </div>
         </div>
       </div>
+
+      <!-- Modal Scanner QR -->
+      <div *ngIf="showQRScanner" 
+           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Scanner un QR code</h3>
+            <button (click)="showQRScanner = false" 
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          
+          <app-qr-scanner
+            (scanComplete)="onQRCodeScanned($event)"
+          ></app-qr-scanner>
+        </div>
+      </div>
     </div>
   `,
   standalone: true,
@@ -790,7 +809,8 @@ interface ActionModalData {
     FinancialGoalsComponent,
     FormsModule,
     ToastComponent,
-    PhoneInputComponent
+    PhoneInputComponent,
+    QRScannerComponent
   ],
   styles: [`
     .animate-fadeIn {
@@ -909,6 +929,17 @@ export class DashboardComponent implements OnInit {
       iconClass: 'text-purple-600 dark:text-purple-400',
       description: 'Acheter des tickets',
       isSelected: false
+    },
+    {
+      id: '5',
+      type: 'scan',
+      name: 'Scanner QR',
+      label: 'Scanner QR',
+      icon: 'fa-qrcode',
+      bgClass: 'bg-pink-100 dark:bg-pink-900',
+      iconClass: 'text-pink-600 dark:text-pink-400',
+      description: 'Scanner un QR code',
+      isSelected: true
     }
   ];
 
@@ -1149,6 +1180,9 @@ export class DashboardComponent implements OnInit {
         case 'bills':
           this.showBillsModal = true;
           break;
+        case 'scan':
+          this.showQRScanner = true;
+          break;
       }
       this.currentStep = 'details';
     }
@@ -1211,21 +1245,23 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    this.transactionService.createTransfer({
+    const qrData: QRCodeData = {
       type: 'transfer',
-      phoneNumber: this.transferData.phoneNumber,
+      userId: this.transferData.phoneNumber,
+      phone: this.transferData.phoneNumber,
       amount: this.transferData.amount,
-      description: this.transferData.description || 'Transfert',
-      pin: this.transferData.pin
-    }).subscribe({
+      description: this.transferData.description,
+      timestamp: new Date().getTime(),
+      expiresIn: 300
+    };
+
+    this.qrService.processQRTransfer(qrData, this.transferData.pin).subscribe({
       next: (response) => {
-        console.log('Transfert réussi:', response);
         this.toastService.show('Transfert effectué avec succès', 'success');
         this.closeModal();
         this.loadRecentTransactions();
       },
       error: (error) => {
-        console.error('Erreur de transfert:', error);
         this.toastService.show(error.message || 'Erreur lors du transfert', 'error');
       }
     });
@@ -1536,5 +1572,39 @@ export class DashboardComponent implements OnInit {
     if (this.currentPage > 1) {
       this.currentPage--;
     }
+  }
+
+  showQRScanner = false;
+
+  onQRCodeScanned(qrData: QRCodeData) {
+    if (!qrData || !qrData.userId || !qrData.phone) {
+      this.toastService.show('QR code invalide', 'error');
+      return;
+    }
+
+    this.qrService.validateScannedQR(qrData).subscribe({
+      next: (isValid) => {
+        if (isValid) {
+          this.showTransferConfirmation(qrData);
+        } else {
+          this.toastService.show('QR code invalide ou expiré', 'error');
+        }
+      },
+      error: (error) => {
+        this.toastService.show(error.message, 'error');
+      }
+    });
+  }
+
+  showTransferConfirmation(qrData: QRCodeData) {
+    this.transferData = {
+      phoneNumber: qrData.phone,
+      amount: qrData.amount || 0,
+      description: qrData.description || 'Transfert via QR',
+      pin: ''
+    };
+    this.showQRScanner = false;
+    this.showTransferModal = true;
+    this.currentStep = 'pin';
   }
 } 
