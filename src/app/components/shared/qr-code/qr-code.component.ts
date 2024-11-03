@@ -26,15 +26,14 @@ import { QRCodeModule } from 'angularx-qrcode';
 
         <!-- QR Code -->
         <div class="flex justify-center mb-6">
-          <div [ngClass]="{'bg-white': !darkMode, 'bg-gray-900': darkMode}" 
-               class="p-4 rounded-lg shadow-inner">
+          <div class="bg-white p-4 rounded-lg shadow-inner">
             <ng-container *ngIf="!loading; else loadingTemplate">
               <qrcode *ngIf="data"
                 [qrdata]="data"
                 [width]="size"
                 [errorCorrectionLevel]="'M'"
-                [colorDark]="darkMode ? '#FFFFFF' : '#000000'"
-                [colorLight]="darkMode ? '#1F2937' : '#FFFFFF'"
+                [colorDark]="'#000000'"
+                [colorLight]="'#FFFFFF'"
                 [margin]="2"
                 [elementType]="'canvas'"
                 class="block"
