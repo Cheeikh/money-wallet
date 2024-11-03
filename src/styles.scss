@@ -1,0 +1,189 @@
+/* You can add global styles to this file, and also import other style files */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import 'node_modules/swiper/swiper.scss';
+@import 'node_modules/intl-tel-input/build/css/intlTelInput.css';
+
+:root {
+  --primary-color: #6366f1;
+  --secondary-color: #4f46e5;
+  --success-color: #22c55e;
+  --danger-color: #ef4444;
+  --background-color: #f8fafc;
+  --card-background: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+}
+
+.card {
+  background: var(--card-background);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  }
+}
+
+// Styles améliorés pour intl-tel-input
+.iti {
+  width: 100%;
+  
+  &__flag-container {
+    display: flex !important;
+    align-items: center;
+    background-color: transparent !important;
+  }
+  
+  &__selected-flag {
+    display: flex !important;
+    align-items: center;
+    padding: 0 12px !important;
+    gap: 8px;
+    width: 110px !important;
+    justify-content: space-between !important;
+  }
+  
+  &__selected-dial-code {
+    margin-left: 8px !important;
+    color: inherit !important;
+  }
+  
+  &__country-list {
+    margin-top: 2px !important;
+    min-width: 280px !important;
+  }
+  
+  &__country {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 12px !important;
+    gap: 8px !important;
+
+    .iti__country-name {
+      margin-right: 6px !important;
+    }
+
+    .iti__dial-code {
+      margin-left: auto !important;
+    }
+  }
+
+  &__flag-container {
+    z-index: 20;
+  }
+
+  &__selected-flag {
+    transition: background-color 0.2s ease;
+  }
+}
+
+// Support amélioré du mode sombre
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #111827;
+    --card-background: #1F2937;
+    --text-primary: #F9FAFB;
+    --text-secondary: #D1D5DB;
+  }
+
+  .iti {
+    &__country-list {
+      background-color: #1F2937;
+      border-color: #374151;
+      
+      &::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.3);
+      }
+    }
+    
+    &__country {
+      color: #F9FAFB;
+      
+      &:hover {
+        background-color: #374151;
+      }
+      
+      &.iti__active {
+        background-color: rgba(99, 102, 241, 0.2);
+      }
+    }
+    
+    &__selected-flag {
+      background-color: #1F2937;
+      
+      &:hover {
+        background-color: #374151;
+      }
+    }
+    
+    &__search-input {
+      background-color: #374151;
+      color: #F9FAFB;
+      border-color: #4B5563;
+    }
+  }
+
+  // Amélioration des inputs en mode sombre
+  input[type="tel"],
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    background-color: #1F2937;
+    border-color: #374151;
+    color: #F9FAFB;
+
+    &::placeholder {
+      color: #9CA3AF;
+    }
+
+    &:focus {
+      border-color: #6366F1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+  }
+
+  // Amélioration des boutons en mode sombre
+  button {
+    &:disabled {
+      background-color: #4B5563;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Animations améliorées
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Classes utilitaires pour les transitions
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.hover-scale {
+  &:hover {
+    transform: scale(1.02);
+  }
+}
