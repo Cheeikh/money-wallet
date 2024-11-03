@@ -6,6 +6,19 @@ import { QRCodeAction, QRCodeData } from '../models/qr-code.model';
 import { User } from '../models/user.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { TransactionService } from './transaction.service';
+import { CreateTransactionDTO, TransactionType } from '../models/transaction.model';
+
+export interface QRValidationResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    userId: string;
+    phone: string;
+    nom: string;
+    prenom: string;
+  };
+}
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +27,11 @@ export class QRCodeService {
   private qrDataSubject = new BehaviorSubject<string>('');
   qrData$ = this.qrDataSubject.asObservable();
 
-  constructor(private authService: AuthService, private http: HttpClient) {}
+  constructor(
+    private authService: AuthService, 
+    private http: HttpClient,
+    private transactionService: TransactionService
+  ) {}
 
   generateQRCode(action: QRCodeAction, options?: { amount?: number; description?: string }): Observable<string> {
     console.log('Generating QR code for action:', action);
@@ -56,8 +73,8 @@ export class QRCodeService {
     );
   }
 
-  validateScannedQR(qrData: QRCodeData): Observable<boolean> {
-    return this.http.post<boolean>(`${environment.apiUrl}/qr/validate`, qrData).pipe(
+  validateScannedQR(qrData: QRCodeData): Observable<QRValidationResponse> {
+    return this.http.post<QRValidationResponse>(`${environment.apiUrl}/qr/validate`, qrData).pipe(
       catchError(error => {
         console.error('Erreur lors de la validation du QR code:', error);
         return throwError(() => new Error('QR code invalide ou expiré'));
@@ -66,18 +83,14 @@ export class QRCodeService {
   }
 
   processQRTransfer(qrData: QRCodeData, pin: string): Observable<any> {
-    const transferData = {
-      sourceUserId: qrData.userId,
-      amount: qrData.amount,
-      description: qrData.description,
+    const transferData: CreateTransactionDTO = {
+      type: 'transfer' as TransactionType,
+      phoneNumber: qrData.phone,
+      amount: qrData.amount || 0,
+      description: qrData.description || 'Transfert via QR',
       pin: pin
     };
 
-    return this.http.post(`${environment.apiUrl}/transfers/qr`, transferData).pipe(
-      catchError(error => {
-        console.error('Erreur lors du transfert via QR:', error);
-        return throwError(() => new Error('Échec du transfert'));
-      })
-    );
+    return this.transactionService.createTransfer(transferData);
   }
 } 

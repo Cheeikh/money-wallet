@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { QuickActionsComponent } from '../shared/quick-actions/quick-actions.component';
 import { WalletService } from '../../services/wallet.service';
 import { ThemeService } from '../../services/theme.service';
-import { QRCodeService } from '../../services/qrcode.service';
+import { QRCodeService, QRValidationResponse } from '../../services/qrcode.service';
 import { QRCodeComponent } from '../shared/qr-code/qr-code.component';
 import { StatsOverviewComponent } from '../shared/stats-overview/stats-overview.component';
 import { FinancialGoalsComponent } from '../shared/financial-goals/financial-goals.component';
@@ -797,6 +797,80 @@ interface ActionModalData {
           ></app-qr-scanner>
         </div>
       </div>
+
+      <!-- Modal Montant pour QR -->
+      <div *ngIf="showAmountModal" 
+           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-xl">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+              Montant du transfert
+            </h3>
+            <button (click)="showAmountModal = false" 
+                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Destinataire
+              </label>
+              <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p class="font-medium text-gray-900 dark:text-white">
+                  {{scannedQRData?.phone}}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Montant
+              </label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <i class="fas fa-euro-sign"></i>
+                </span>
+                <input type="number" [(ngModel)]="transferData.amount"
+                       (input)="validateAmount($event)"
+                       min="1" max="1000"
+                       class="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 transition-all">
+              </div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <button *ngFor="let amount of quickAmounts"
+                        (click)="selectQuickAmount(amount)"
+                        class="px-3 py-1 rounded-full text-sm border transition-colors duration-200"
+                        [class.bg-indigo-600]="transferData.amount === amount"
+                        [class.text-white]="transferData.amount === amount">
+                  {{amount}}€
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Description (optionnel)
+              </label>
+              <input type="text" [(ngModel)]="transferData.description"
+                     placeholder="Ex: Remboursement restaurant"
+                     class="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 transition-all">
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+              <button (click)="showAmountModal = false" 
+                      class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                Annuler
+              </button>
+              <button (click)="confirmAmount()" 
+                      [disabled]="!transferData.amount || transferData.amount <= 0"
+                      class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                Continuer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   standalone: true,
@@ -1577,17 +1651,21 @@ export class DashboardComponent implements OnInit {
   showQRScanner = false;
 
   onQRCodeScanned(qrData: QRCodeData) {
-    if (!qrData || !qrData.userId || !qrData.phone) {
-      this.toastService.show('QR code invalide', 'error');
-      return;
-    }
-
     this.qrService.validateScannedQR(qrData).subscribe({
-      next: (isValid) => {
-        if (isValid) {
-          this.showTransferConfirmation(qrData);
+      next: (response: QRValidationResponse) => {
+        if (response.success) {
+          // Fermer le scanner et afficher le modal de montant
+          this.showQRScanner = false;
+          this.showAmountModal = true;
+          this.scannedQRData = qrData;
+          this.transferData = {
+            phoneNumber: qrData.phone,
+            amount: 0,
+            description: 'Transfert via QR',
+            pin: ''
+          };
         } else {
-          this.toastService.show('QR code invalide ou expiré', 'error');
+          this.toastService.show(response.message || 'QR code invalide', 'error');
         }
       },
       error: (error) => {
@@ -1596,15 +1674,20 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  showTransferConfirmation(qrData: QRCodeData) {
-    this.transferData = {
-      phoneNumber: qrData.phone,
-      amount: qrData.amount || 0,
-      description: qrData.description || 'Transfert via QR',
-      pin: ''
-    };
-    this.showQRScanner = false;
+  // Nouvelle méthode pour confirmer le montant
+  confirmAmount() {
+    if (this.transferData.amount <= 0) {
+      this.toastService.show('Veuillez entrer un montant valide', 'error');
+      return;
+    }
+    
+    // Passer à l'étape du PIN
+    this.showAmountModal = false;
     this.showTransferModal = true;
     this.currentStep = 'pin';
   }
+
+  // Ajoutez ces propriétés
+  showAmountModal = false;
+  scannedQRData: QRCodeData | null = null;
 } 
