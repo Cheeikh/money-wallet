@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { sessionGuard } from './guards/session.guard';
+import { ProfileComponent } from './components/profile/profile.component';
+import { SettingsComponent } from './components/settings/settings.component';
 
 export const routes: Routes = [
   {
@@ -38,6 +40,16 @@ export const routes: Routes = [
         path: 'transactions',
         loadComponent: () => import('./components/transactions/transactions.component')
           .then(m => m.TransactionsComponent),
+        canActivate: [authGuard]
+      },
+      {
+        path: 'profile',
+        component: ProfileComponent,
+        canActivate: [authGuard]
+      },
+      {
+        path: 'settings',
+        component: SettingsComponent,
         canActivate: [authGuard]
       },
       {

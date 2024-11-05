@@ -31,6 +31,14 @@ import { map } from 'rxjs/operators';
                 class="text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
                 <i class="fas fa-exchange-alt mr-2"></i>Transactions
               </a>
+              <a routerLink="/profile" routerLinkActive="bg-indigo-700"
+                class="text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-user mr-2"></i>Profil
+              </a>
+              <a routerLink="/settings" routerLinkActive="bg-indigo-700"
+                class="text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-cog mr-2"></i>Paramètres
+              </a>
             </div>
 
             <!-- Bouton thème -->
@@ -71,6 +79,14 @@ import { map } from 'rxjs/operators';
           <a routerLink="/transactions" routerLinkActive="bg-indigo-700"
             class="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-700 transition-colors">
             <i class="fas fa-exchange-alt mr-2"></i>Transactions
+          </a>
+          <a routerLink="/profile" routerLinkActive="bg-indigo-700"
+            class="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-700 transition-colors">
+            <i class="fas fa-user mr-2"></i>Profil
+          </a>
+          <a routerLink="/settings" routerLinkActive="bg-indigo-700"
+            class="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-700 transition-colors">
+            <i class="fas fa-cog mr-2"></i>Paramètres
           </a>
         </div>
       </div>

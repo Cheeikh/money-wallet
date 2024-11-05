@@ -18,7 +18,7 @@ import { User } from '../../../models/user.model';
             Bon retour !
           </h2>
           <p class="mt-2 text-gray-600 dark:text-gray-400">
-            {{storedUser?.prenom}} {{storedUser?.nom}}
+            {{storedUser?.firstName || storedUser?.prenom}} {{storedUser?.lastName || storedUser?.nom}}
           </p>
         </div>
 

@@ -149,6 +149,11 @@ export class QuickActionsComponent {
         title: 'Retrait',
         description: 'Scannez ce QR code pour effectuer un retrait',
         action: 'effectuer un retrait'
+      },
+      identification: {
+        title: 'Identification',
+        description: 'Scanner pour vous identifier',
+        action: 'S\'identifier'
       }
     };
 

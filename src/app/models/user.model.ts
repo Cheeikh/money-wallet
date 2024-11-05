@@ -1,11 +1,15 @@
 export interface User {
   id: string;
-  nom: string;
-  prenom: string;
-  telephone: string;
-  solde: number;
-  roles: string[];
-  isTelephoneVerifie: boolean;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  photoUrl?: string;
+  prenom?: string;
+  nom?: string;
+  telephone?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface LoginResponse {

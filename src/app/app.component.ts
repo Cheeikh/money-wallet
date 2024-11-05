@@ -57,7 +57,7 @@ import { AuthService } from './services/auth.service';
                   <button (click)="toggleProfileMenu()" 
                           class="text-white p-2 rounded-full hover:bg-indigo-700 transition-colors flex items-center space-x-2">
                     <i class="fas fa-user-circle"></i>
-                    <span class="text-sm">{{ (currentUser$ | async)?.prenom || 'Mon compte' }}</span>
+                    <span class="text-sm">{{ (currentUser$ | async)?.firstName || 'Mon compte' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                   </button>
 

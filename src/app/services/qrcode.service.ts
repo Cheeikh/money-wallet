@@ -51,10 +51,15 @@ export class QRCodeService {
           throw new Error('No user data available');
         }
         
+        const phoneNumber = user.phone || user.telephone;
+        if (!phoneNumber) {
+          throw new Error('No phone number available');
+        }
+        
         const qrData: QRCodeData = {
           type: action,
           userId: user.id,
-          phone: user.telephone,
+          phone: phoneNumber,
           timestamp: new Date().getTime(),
           expiresIn: 300,
           ...(options?.amount && { amount: options.amount }),
