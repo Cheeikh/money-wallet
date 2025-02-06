@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd, RouterLink, RouterLinkActive } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
@@ -159,7 +159,7 @@ import { AuthService } from './services/auth.service';
     }
   `]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   isAuthRoute: boolean = false;
   isMenuOpen: boolean = false;
   isProfileMenuOpen: boolean = false;
@@ -170,16 +170,26 @@ export class AppComponent {
     private router: Router,
     private themeService: ThemeService,
     private authService: AuthService
-  ) {
+  ) {}
+
+  ngOnInit() {
+    // Vérifier la route initiale
+    this.checkIfAuthRoute(this.router.url);
+
+    // S'abonner aux changements de route
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.isAuthRoute = event.url.includes('/login') || event.url.includes('/register');
-      if (this.isAuthRoute) {
-        this.isMenuOpen = false;
-        this.isProfileMenuOpen = false;
-      }
+      this.checkIfAuthRoute(event.url);
     });
+  }
+
+  private checkIfAuthRoute(url: string) {
+    this.isAuthRoute = url === '/' || url.includes('/login') || url.includes('/register');
+    if (this.isAuthRoute) {
+      this.isMenuOpen = false;
+      this.isProfileMenuOpen = false;
+    }
   }
 
   toggleMenu() {
